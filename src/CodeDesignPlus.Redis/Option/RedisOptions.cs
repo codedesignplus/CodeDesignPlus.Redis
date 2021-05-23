@@ -1,5 +1,8 @@
 ﻿using CodeDesignPlus.Redis.Attributes;
+using StackExchange.Redis;
 using System.Collections.Generic;
+using System.Linq;
+using System.Net;
 
 namespace CodeDesignPlus.Redis.Option
 {
@@ -56,7 +59,7 @@ namespace CodeDesignPlus.Redis.Option
         /// <summary>
         /// Optional channel prefix for all pub/sub operations
         /// </summary>
-        public int ChannelPrefix { get; set; }
+        public string ChannelPrefix { get; set; }
         /// <summary>
         /// Time (ms) to allow for asynchronous operations (Default SyncTimeout)
         /// </summary>
@@ -89,5 +92,38 @@ namespace CodeDesignPlus.Redis.Option
         /// The service name used to resolve a service via sentinel.
         /// </summary>
         public string ServiceName { get; set; }
+
+        /// <summary>
+        /// Create a new instance of <see cref="ConfigurationOptions"/>
+        /// </summary>
+        /// <returns>The options relevant to a set of redis connections</returns>
+        public ConfigurationOptions CreateConfiguration()
+        {
+            var configuration = new ConfigurationOptions()
+            {
+                ResolveDns = this.ResolveDns,
+                Password = this.Password,
+                User = this.User,
+                HighPrioritySocketThreads = this.HighPrioritySocketThreads,
+                DefaultDatabase = this.DefaultDatabase,
+                ConnectTimeout = this.ConnectTimeout,
+                ConnectRetry = this.ConnectRetry,
+                ClientName = this.ClientName,
+                CheckCertificateRevocation = this.CheckCertificateRevocation,
+                ChannelPrefix = this.ChannelPrefix,
+                AsyncTimeout = this.AsyncTimeout,
+                AllowAdmin = this.AllowAdmin,
+                AbortOnConnectFail = this.AbortOnConnectFail,
+                Ssl = this.Ssl,
+                SslHost = this.SslHost,
+                SyncTimeout = this.SyncTimeout,
+                ConfigCheckSeconds = this.ConfigCheckSeconds,
+                ServiceName = this.ServiceName,
+            };
+
+            this.EndPoints.ForEach(x => configuration.EndPoints.Add(x));
+
+            return configuration;
+        }
     }
 }

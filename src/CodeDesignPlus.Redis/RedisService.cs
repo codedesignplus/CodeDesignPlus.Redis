@@ -43,6 +43,14 @@ namespace CodeDesignPlus.Redis
         }
 
         /// <summary>
+        /// Start the connection with the redis server
+        /// </summary>
+        private void Initialize()
+        {
+
+        }
+
+        /// <summary>
         /// Register event handlers 
         /// </summary>
         /// <param name="connection">Represents an inter-related group of connections to redis servers</param>

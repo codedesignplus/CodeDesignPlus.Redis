@@ -8,14 +8,24 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{C3D09949-B764-4043-8770-1E4AF5718190}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "scripts", "scripts", "{DC45331E-3E89-433D-91F2-719F87289D93}"
+	ProjectSection(SolutionItems) = preProject
+		scripts\run-scanner-sonarqube.ps1 = scripts\run-scanner-sonarqube.ps1
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "pipeline", "pipeline", "{5266C0F9-09E8-4199-92A4-ECF7A008B9DC}"
+	ProjectSection(SolutionItems) = preProject
+		pipelines\git-version.yaml = pipelines\git-version.yaml
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "doc", "doc", "{75500FAE-C6F3-4659-8367-357947FD2334}"
+	ProjectSection(SolutionItems) = preProject
+		LICENSE.md = LICENSE.md
+		README.md = README.md
+	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CodeDesignPlus.Redis", "src\CodeDesignPlus.Redis\CodeDesignPlus.Redis.csproj", "{6FC48470-8659-40F8-B5EB-2025B8A8B7DC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodeDesignPlus.Redis.Test", "tests\CodeDesignPlus.Redis.Test\CodeDesignPlus.Redis.Test.csproj", "{B9D0A588-F991-48AC-972A-1AADFA5F6D97}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CodeDesignPlus.Redis.Test", "tests\CodeDesignPlus.Redis.Test\CodeDesignPlus.Redis.Test.csproj", "{B9D0A588-F991-48AC-972A-1AADFA5F6D97}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
