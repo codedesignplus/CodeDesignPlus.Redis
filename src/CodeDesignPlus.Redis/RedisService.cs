@@ -10,6 +10,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Security.Cryptography.X509Certificates;
+using System.Net.Security;
 
 namespace CodeDesignPlus.Redis
 {
@@ -30,6 +32,22 @@ namespace CodeDesignPlus.Redis
         /// Options for the Redis service 
         /// </summary>
         private readonly RedisOptions options;
+        /// <summary>
+        /// Represents a collection of System.Security.Cryptography.X509Certificates.X509Certificate2 objects
+        /// </summary>
+        private readonly X509Certificate2Collection collection = new();
+        /// <summary>
+        /// Represents the abstract multiplexer API
+        /// </summary>
+        private IConnectionMultiplexer connection;
+        /// <summary>
+        /// Describes functionality that is common to both standalone redis servers and redis clusters
+        /// </summary>
+        public IDatabaseAsync Database { get; private set; }
+        /// <summary>
+        /// A redis connection used as the subscriber in a pub/sub scenario
+        /// </summary>
+        public ISubscriber Subscriber { get; private set; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RedisService"/>
@@ -40,6 +58,8 @@ namespace CodeDesignPlus.Redis
         {
             this.options = options.Value;
             this.logger = logger;
+
+            this.Initialize();
         }
 
         /// <summary>
@@ -47,22 +67,77 @@ namespace CodeDesignPlus.Redis
         /// </summary>
         private void Initialize()
         {
+            var configuration = this.options.CreateConfiguration();
 
+            if(configuration.Ssl)
+            {
+                configuration.CertificateValidation += Configuration_CertificateValidation;
+                configuration.CertificateSelection += Configuration_CertificateSelection;
+            }
+
+            this.connection = ConnectionMultiplexer.Connect(configuration);
+
+            if(this.connection.IsConnected)
+            {
+                this.RegisterEvents();
+
+                this.Subscriber = this.connection.GetSubscriber();
+
+                this.Database = this.connection.GetDatabase((int)configuration.DefaultDatabase);
+            }
+        }
+
+        /// <summary>
+        /// A LocalCertificateSelectionCallback delegate responsible for selecting the certificate
+        /// used for authentication; note that this cannot be specified in the configuration-string.
+        /// </summary>
+        /// <param name="sender">An object that contains state information for this validation.</param>
+        /// <param name="targetHost">The host server specified by the client.</param>
+        /// <param name="localCertificates">An System.Security.Cryptography.X509Certificates.X509CertificateCollection containing local certificates.</param>
+        /// <param name="remoteCertificate">The certificate used to authenticate the remote party.</param>
+        /// <param name="acceptableIssuers"> A System.String array of certificate issuers acceptable to the remote party.</param>
+        /// <returns>An System.Security.Cryptography.X509Certificates.X509Certificate used for establishing an SSL connection.</returns>
+        private X509Certificate Configuration_CertificateSelection(object sender, string targetHost, X509CertificateCollection localCertificates, X509Certificate remoteCertificate, string[] acceptableIssuers)
+        {
+            this.collection.Import(options.Certificate, options.PasswordCertificate);
+
+            return new X509Certificate(options.Certificate, options.PasswordCertificate);
+        }
+
+        /// <summary>
+        /// A RemoteCertificateValidationCallback delegate responsible for validating the
+        /// certificate supplied by the remote party; note that this cannot be specified
+        /// in the configuration-string.
+        /// </summary>
+        /// <param name="sender">An object that contains state information for this validation.</param>
+        /// <param name="certificate">The certificate used to authenticate the remote party.</param>
+        /// <param name="chain">The chain of certificate authorities associated with the remote certificate.</param>
+        /// <param name="sslPolicyErrors">One or more errors associated with the remote certificate.</param>
+        /// <returns>A System.Boolean value that determines whether the specified certificate is accepted for authentication.</returns>
+        private bool Configuration_CertificateValidation(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
+        {
+            if(sslPolicyErrors == SslPolicyErrors.RemoteCertificateChainErrors)
+            {
+                var root = chain.ChainElements[^1].Certificate;
+
+                return this.collection.Contains(root);
+            }
+
+            return sslPolicyErrors == SslPolicyErrors.None;
         }
 
         /// <summary>
         /// Register event handlers 
         /// </summary>
-        /// <param name="connection">Represents an inter-related group of connections to redis servers</param>
-        private void RegisterEvents(IConnectionMultiplexer connection)
+        private void RegisterEvents()
         {
-            connection.ConfigurationChanged += ConfigurationChanged;
-            connection.ConfigurationChangedBroadcast += ConfigurationChangedBroadcast;
-            connection.ConnectionFailed += ConnectionFailed;
-            connection.ConnectionRestored += ConnectionRestored;
-            connection.ErrorMessage += ErrorMessage;
-            connection.HashSlotMoved += HashSlotMoved;
-            connection.InternalError += InternalError;
+            this.connection.ConfigurationChanged += this.ConfigurationChanged;
+            this.connection.ConfigurationChangedBroadcast += this.ConfigurationChangedBroadcast;
+            this.connection.ConnectionFailed += this.ConnectionFailed;
+            this.connection.ConnectionRestored += this.ConnectionRestored;
+            this.connection.ErrorMessage += this.ErrorMessage;
+            this.connection.HashSlotMoved += this.HashSlotMoved;
+            this.connection.InternalError += this.InternalError;
         }
 
         /// <summary>

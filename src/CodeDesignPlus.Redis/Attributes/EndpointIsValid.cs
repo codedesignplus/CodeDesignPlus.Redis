@@ -29,7 +29,7 @@ namespace CodeDesignPlus.Redis.Attributes
             var endpoints = (List<string>) data;
 
             var validIpAddressRegex = new Regex(ValidIpAddressRegex);
-            var validHostnameRegex = new Regex(ValidIpAddressRegex);
+            var validHostnameRegex = new Regex(ValidHostnameRegex);
 
             foreach (string endpoint in endpoints)
             {

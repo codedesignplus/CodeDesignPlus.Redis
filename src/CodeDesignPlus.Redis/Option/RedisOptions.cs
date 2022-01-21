@@ -1,6 +1,7 @@
 ﻿using CodeDesignPlus.Redis.Attributes;
 using StackExchange.Redis;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Net;
 
@@ -39,6 +40,7 @@ namespace CodeDesignPlus.Redis.Option
         /// <summary>
         /// Specifies the default database to be used when calling ConnectionMultiplexer.GetDatabase() without any parameters
         /// </summary>
+        [Range(0, int.MaxValue)]
         public int DefaultDatabase { get; set; } = 0;
         /// <summary>
         /// Specifies the time in milliseconds that should be allowed for connection (defaults to 5 seconds unless SyncTimeout is higher)
@@ -92,6 +94,14 @@ namespace CodeDesignPlus.Redis.Option
         /// The service name used to resolve a service via sentinel.
         /// </summary>
         public string ServiceName { get; set; }
+        /// <summary>
+        /// File Pfx
+        /// </summary>
+        public string Certificate { get; set; }
+        /// <summary>
+        /// Password Certificate
+        /// </summary>
+        public string PasswordCertificate { get; set; }
 
         /// <summary>
         /// Create a new instance of <see cref="ConfigurationOptions"/>
