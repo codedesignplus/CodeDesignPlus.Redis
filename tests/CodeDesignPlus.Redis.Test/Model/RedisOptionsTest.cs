@@ -116,5 +116,66 @@ namespace CodeDesignPlus.Redis.Test.Model
             Assert.Equal(10000, redisOptions.SyncTimeout);
             Assert.Equal("myuser", redisOptions.User);
         }
+
+        /// <summary>
+        /// Validate accessors and data annotations
+        /// </summary>
+        [Theory]
+        [InlineData("redis-server-1.codedesignplus.com:6379")]
+        [InlineData("127.0.0.1:6379")]
+        public void CreateConfiguration_IsValid(string endpoint)
+        {
+            // Arrange
+            var redisOptions = new RedisOptions()
+            {
+                AbortOnConnectFail = false,
+                AllowAdmin = true,
+                AsyncTimeout = 10000,
+                Certificate = @"C:\certificate.pfx",
+                ChannelPrefix = "Redis - ",
+                CheckCertificateRevocation = true,
+                ClientName = "CodeDesignPlus.Redis.Client",
+                ConfigCheckSeconds = 120,
+                ConnectRetry = 4,
+                ConnectTimeout = 10000,
+                DefaultDatabase = 1,
+                HighPrioritySocketThreads = false,
+                Password = "mypassword",
+                PasswordCertificate = "certpassword",
+                ResolveDns = true,
+                ServiceName = "mymaster",
+                Ssl = true,
+                SslHost = "redis-server-1.certificate.com",
+                SyncTimeout = 10000,
+                User = "myuser"
+            };
+
+            redisOptions.EndPoints.Add(endpoint);
+
+            // Act
+            var configuration = redisOptions.CreateConfiguration();
+
+            // Assert
+            Assert.NotNull(configuration);
+
+            Assert.False(configuration.AbortOnConnectFail);
+            Assert.True(configuration.AllowAdmin);
+            Assert.Equal(10000, configuration.AsyncTimeout);
+            Assert.Equal("Redis - ", configuration.ChannelPrefix);
+            Assert.True(configuration.CheckCertificateRevocation);
+            Assert.Equal("CodeDesignPlus.Redis.Client", configuration.ClientName);
+            Assert.Equal(120, configuration.ConfigCheckSeconds);
+            Assert.Equal(4, configuration.ConnectRetry);
+            Assert.Equal(10000, configuration.ConnectTimeout);
+            Assert.Equal(1, configuration.DefaultDatabase);
+            Assert.False(configuration.HighPrioritySocketThreads);
+            Assert.Equal("mypassword", configuration.Password);
+            Assert.True(configuration.ResolveDns);
+            Assert.Equal("mymaster", configuration.ServiceName);
+            Assert.True(configuration.Ssl);
+            Assert.Equal("redis-server-1.certificate.com", configuration.SslHost);
+            Assert.Equal(10000, configuration.SyncTimeout);
+            Assert.Equal("myuser", configuration.User);
+        }
     }
 }

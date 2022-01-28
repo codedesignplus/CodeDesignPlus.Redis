@@ -11,7 +11,12 @@
     <PackageTags>CodeDesignPlus SDK</PackageTags>
     <Copyright>© CodeDesignPlus. All rights reserved.</Copyright>
     <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
+    <CodeAnalysisRuleSet>..\..\.sonarlint\codedesignplus.redis.keycsharp.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
+
+  <ItemGroup>
+    <AdditionalFiles Include="..\..\.sonarlint\codedesignplus.redis.key\CSharp\SonarLint.xml" Link="SonarLint.xml" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="5.0.0" />
