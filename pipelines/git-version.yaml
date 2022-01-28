@@ -6,6 +6,6 @@ branches:
    regex: (^features)|(^pull)
  master:
    tag: '' 
-   regex: master$
+   regex: (master|main)$
 ignore: 
  sha: []
