@@ -23,4 +23,8 @@
     </PackageReference>
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\CodeDesignPlus.Redis\CodeDesignPlus.Redis.csproj" />
+  </ItemGroup>
+
 </Project>

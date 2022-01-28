@@ -2,8 +2,6 @@
 using StackExchange.Redis;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Net;
 
 namespace CodeDesignPlus.Redis.Option
 {
@@ -35,7 +33,7 @@ namespace CodeDesignPlus.Redis.Option
         /// <summary>
         /// The endpoints defined for this configuration
         /// </summary>
-        [EndpointIsValid]
+        [EndpointIsValidAttribute]
         public List<string> EndPoints { get; } = new List<string>();
         /// <summary>
         /// Specifies the default database to be used when calling ConnectionMultiplexer.GetDatabase() without any parameters
@@ -128,7 +126,7 @@ namespace CodeDesignPlus.Redis.Option
                 SslHost = this.SslHost,
                 SyncTimeout = this.SyncTimeout,
                 ConfigCheckSeconds = this.ConfigCheckSeconds,
-                ServiceName = this.ServiceName,
+                ServiceName = this.ServiceName
             };
 
             this.EndPoints.ForEach(x => configuration.EndPoints.Add(x));
