@@ -1,10 +1,7 @@
 ﻿using CodeDesignPlus.Redis.Option;
 using CodeDesignPlus.Redis.Test.Helpers.Extensions;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Xunit;
 
 namespace CodeDesignPlus.Redis.Test.Model
@@ -176,6 +173,46 @@ namespace CodeDesignPlus.Redis.Test.Model
             Assert.Equal("redis-server-1.certificate.com", configuration.SslHost);
             Assert.Equal(10000, configuration.SyncTimeout);
             Assert.Equal("myuser", configuration.User);
+        }
+
+        /// <summary>
+        /// Validate certificate is not null if SSL is true
+        /// </summary>
+        [Fact]
+        public void Certificate_NotNull_Success()
+        {
+            // Arrange
+            var redisOptions = new RedisOptions()
+            {
+                DefaultDatabase = 4
+            };
+
+            // Act
+            var results = redisOptions.Validate();
+
+            // Assert
+            Assert.NotEmpty(results);
+            Assert.Contains(results, x => x.ErrorMessage.Equals("The Certificate is required") && x.MemberNames.Contains(nameof(RedisOptions.Certificate)));
+        }
+
+        /// <summary>
+        /// Validate certificate is null if SSL is false
+        /// </summary>
+        [Fact]
+        public void Certificate_Null_Success()
+        {
+            // Arrange
+            var redisOptions = new RedisOptions()
+            {
+                DefaultDatabase = 4,
+                Ssl = false
+            };
+
+            // Act
+            var results = redisOptions.Validate();
+
+            // Assert
+            Assert.Empty(results);
         }
     }
 }

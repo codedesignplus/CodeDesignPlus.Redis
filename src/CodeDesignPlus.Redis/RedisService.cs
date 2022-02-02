@@ -3,15 +3,9 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using StackExchange.Redis;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Text;
-using System.Threading.Tasks;
-using System.Text.Json;
-using System.Text.Json.Serialization;
-using System.Security.Cryptography.X509Certificates;
 using System.Net.Security;
+using System.Security.Cryptography.X509Certificates;
+using System.Text.Json;
 
 namespace CodeDesignPlus.Redis
 {
@@ -33,13 +27,9 @@ namespace CodeDesignPlus.Redis
         /// </summary>
         private readonly RedisOptions options;
         /// <summary>
-        /// Represents a collection of System.Security.Cryptography.X509Certificates.X509Certificate2 objects
-        /// </summary>
-        private readonly X509Certificate2Collection collection = new();
-        /// <summary>
         /// Represents the abstract multiplexer API
         /// </summary>
-        private IConnectionMultiplexer connection;
+        public IConnectionMultiplexer Connection { get; private set; }
         /// <summary>
         /// Describes functionality that is common to both standalone redis servers and redis clusters
         /// </summary>
@@ -48,16 +38,25 @@ namespace CodeDesignPlus.Redis
         /// A redis connection used as the subscriber in a pub/sub scenario
         /// </summary>
         public ISubscriber Subscriber { get; private set; }
+        /// <summary>
+        /// Indicates whether any servers are connected
+        /// </summary>
+        public bool IsConnected { get => this.Connection.IsConnected; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RedisService"/>
         /// </summary>
         /// <param name="options">Options for the Redis service </param>
         /// <param name="logger">A generic interface for logging</param>
+        /// <exception cref="ArgumentNullException">options is null</exception>
+        /// <exception cref="ArgumentNullException">logger is null</exception>
         public RedisService(IOptions<RedisOptions> options, ILogger<RedisService> logger)
         {
+            if (options == null)
+                throw new ArgumentNullException(nameof(options));
+
             this.options = options.Value;
-            this.logger = logger;
+            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
             this.Initialize();
         }
@@ -69,21 +68,21 @@ namespace CodeDesignPlus.Redis
         {
             var configuration = this.options.CreateConfiguration();
 
-            if(configuration.Ssl)
+            if (configuration.Ssl)
             {
-                configuration.CertificateValidation += Configuration_CertificateValidation;
                 configuration.CertificateSelection += Configuration_CertificateSelection;
+                configuration.CertificateValidation += Configuration_CertificateValidation;
             }
 
-            this.connection = ConnectionMultiplexer.Connect(configuration);
+            this.Connection = ConnectionMultiplexer.Connect(configuration);
 
-            if(this.connection.IsConnected)
+            if (this.Connection.IsConnected)
             {
                 this.RegisterEvents();
 
-                this.Subscriber = this.connection.GetSubscriber();
+                this.Subscriber = this.Connection.GetSubscriber();
 
-                this.Database = this.connection.GetDatabase((int)configuration.DefaultDatabase);
+                this.Database = this.Connection.GetDatabase((int)configuration.DefaultDatabase);
             }
         }
 
@@ -97,11 +96,12 @@ namespace CodeDesignPlus.Redis
         /// <param name="remoteCertificate">The certificate used to authenticate the remote party.</param>
         /// <param name="acceptableIssuers"> A System.String array of certificate issuers acceptable to the remote party.</param>
         /// <returns>An System.Security.Cryptography.X509Certificates.X509Certificate used for establishing an SSL connection.</returns>
-        private X509Certificate Configuration_CertificateSelection(object sender, string targetHost, X509CertificateCollection localCertificates, X509Certificate remoteCertificate, string[] acceptableIssuers)
+        private X509Certificate2 Configuration_CertificateSelection(object sender, string targetHost, X509CertificateCollection localCertificates, X509Certificate remoteCertificate, string[] acceptableIssuers)
         {
-            this.collection.Import(options.Certificate, options.PasswordCertificate);
-
-            return new X509Certificate(options.Certificate, options.PasswordCertificate);
+            if (!string.IsNullOrEmpty(this.options.PasswordCertificate))
+                return new X509Certificate2(this.options.Certificate, this.options.PasswordCertificate);
+            else
+                return new X509Certificate2(this.options.Certificate);
         }
 
         /// <summary>
@@ -116,11 +116,15 @@ namespace CodeDesignPlus.Redis
         /// <returns>A System.Boolean value that determines whether the specified certificate is accepted for authentication.</returns>
         private bool Configuration_CertificateValidation(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
         {
-            if(sslPolicyErrors == SslPolicyErrors.RemoteCertificateChainErrors)
+            if (sslPolicyErrors == SslPolicyErrors.RemoteCertificateChainErrors)
             {
                 var root = chain.ChainElements[^1].Certificate;
 
-                return this.collection.Contains(root);
+                var collection = new X509Certificate2Collection();
+
+                collection.Import(this.options.Certificate, this.options.PasswordCertificate);
+
+                return collection.Contains(root);
             }
 
             return sslPolicyErrors == SslPolicyErrors.None;
@@ -131,13 +135,13 @@ namespace CodeDesignPlus.Redis
         /// </summary>
         private void RegisterEvents()
         {
-            this.connection.ConfigurationChanged += this.ConfigurationChanged;
-            this.connection.ConfigurationChangedBroadcast += this.ConfigurationChangedBroadcast;
-            this.connection.ConnectionFailed += this.ConnectionFailed;
-            this.connection.ConnectionRestored += this.ConnectionRestored;
-            this.connection.ErrorMessage += this.ErrorMessage;
-            this.connection.HashSlotMoved += this.HashSlotMoved;
-            this.connection.InternalError += this.InternalError;
+            this.Connection.ConfigurationChanged += this.ConfigurationChanged;
+            this.Connection.ConfigurationChangedBroadcast += this.ConfigurationChangedBroadcast;
+            this.Connection.ConnectionFailed += this.ConnectionFailed;
+            this.Connection.ConnectionRestored += this.ConnectionRestored;
+            this.Connection.ErrorMessage += this.ErrorMessage;
+            this.Connection.HashSlotMoved += this.HashSlotMoved;
+            this.Connection.InternalError += this.InternalError;
         }
 
         /// <summary>
@@ -147,12 +151,10 @@ namespace CodeDesignPlus.Redis
         /// <param name="args">Event information</param>
         private void InternalError(object sender, InternalErrorEventArgs args)
         {
-            var endPoint = (DnsEndPoint)args.EndPoint;
-
             var data = new
             {
                 args.ConnectionType,
-                EndPoint = endPoint.ToString(),
+                EndPoint = args.EndPoint.ToString(),
                 args.Origin
             };
 
@@ -166,14 +168,11 @@ namespace CodeDesignPlus.Redis
         /// <param name="args">Event information</param>
         private void HashSlotMoved(object sender, HashSlotMovedEventArgs args)
         {
-            var oldEndPoint = (DnsEndPoint)args.OldEndPoint;
-            var newEndPoint = (DnsEndPoint)args.NewEndPoint;
-
             var data = new
             {
                 args.HashSlot,
-                OldEndPoint = oldEndPoint.ToString(),
-                NewEndPoint = newEndPoint.ToString()
+                OldEndPoint = args.OldEndPoint.ToString(),
+                NewEndPoint = args.NewEndPoint.ToString()
             };
 
             this.logger.LogWarning("Hash Slot Moved - Data: {0}", JsonSerializer.Serialize(data, this.jsonSerializerOptions));
@@ -186,11 +185,9 @@ namespace CodeDesignPlus.Redis
         /// <param name="args">Event information</param>
         private void ErrorMessage(object sender, RedisErrorEventArgs args)
         {
-            var endPoint = (DnsEndPoint)args.EndPoint;
-
             var data = new
             {
-                EndPoint = endPoint.ToString(),
+                EndPoint = args.EndPoint.ToString(),
                 args.Message
             };
 
@@ -204,12 +201,10 @@ namespace CodeDesignPlus.Redis
         /// <param name="args">Event information</param>
         private void ConnectionRestored(object sender, ConnectionFailedEventArgs args)
         {
-            var endPoint = (DnsEndPoint)args.EndPoint;
-
             var data = new
             {
                 args.ConnectionType,
-                EndPoint = endPoint.ToString(),
+                EndPoint = args.EndPoint.ToString(),
                 args.FailureType,
                 physicalNameConnection = args.ToString()
             };
@@ -224,12 +219,10 @@ namespace CodeDesignPlus.Redis
         /// <param name="args">Event information</param>
         private void ConnectionFailed(object sender, ConnectionFailedEventArgs args)
         {
-            var endPoint = (DnsEndPoint)args.EndPoint;
-
             var data = new
             {
                 args.ConnectionType,
-                EndPoint = endPoint.ToString(),
+                EndPoint = args.EndPoint.ToString(),
                 args.FailureType,
                 physicalNameConnection = args.ToString()
             };
@@ -244,11 +237,9 @@ namespace CodeDesignPlus.Redis
         /// <param name="args">Event information</param>
         private void ConfigurationChangedBroadcast(object sender, EndPointEventArgs args)
         {
-            var endPoint = (DnsEndPoint)args.EndPoint;
-
             var data = new
             {
-                EndPoint = endPoint.ToString(),
+                EndPoint = args.EndPoint.ToString(),
             };
 
             this.logger.LogInformation("Configuration Changed Broadcast - Data: {0}", JsonSerializer.Serialize(data, this.jsonSerializerOptions));
@@ -261,11 +252,9 @@ namespace CodeDesignPlus.Redis
         /// <param name="args">Event information</param>
         private void ConfigurationChanged(object sender, EndPointEventArgs args)
         {
-            var endPoint = (DnsEndPoint)args.EndPoint;
-
             var data = new
             {
-                EndPoint = endPoint.ToString(),
+                EndPoint = args.EndPoint.ToString(),
             };
 
             this.logger.LogInformation("Configuration Changed - Data: {0}", JsonSerializer.Serialize(data, this.jsonSerializerOptions));

@@ -6,8 +6,6 @@ using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Xunit;
 
 namespace CodeDesignPlus.Redis.Test.Extensions
@@ -67,7 +65,7 @@ namespace CodeDesignPlus.Redis.Test.Extensions
             var provider = services.BuildServiceProvider();
 
             // Assert
-            var redisService = services.FirstOrDefault(x => x.ServiceType == typeof(IRedisService) && x.ImplementationType == typeof(RedisService));
+            var redisService = services.FirstOrDefault(x => x.ServiceType == typeof(IRedisService) && x.ImplementationType == typeof(Redis.RedisService));
 
             Assert.NotNull(redisService);
             Assert.Equal(ServiceLifetime.Singleton, redisService.Lifetime);

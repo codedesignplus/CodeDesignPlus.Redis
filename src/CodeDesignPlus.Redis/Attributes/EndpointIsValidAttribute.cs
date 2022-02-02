@@ -26,7 +26,7 @@ namespace CodeDesignPlus.Redis.Attributes
         /// <returns>true if the specified value is valid; otherwise, false.</returns>
         public override bool IsValid(object value)
         {
-            var endpoints = (List<string>) value;
+            var endpoints = (List<string>)value;
 
             var validIpAddressRegex = new Regex(ValidIpAddressRegex);
             var validHostnameRegex = new Regex(ValidHostnameRegex);

@@ -5,16 +5,16 @@ using System.ComponentModel.DataAnnotations;
 namespace CodeDesignPlus.Redis.Test.Helpers.Extensions
 {
     /// <summary>
-    /// Clase que se encarga de proveer metodos de extensión para la validación de los Data Annotations
+    /// Methods extensions to DataAnnotations
     /// </summary>
     public static class DataAnnotationsExtensions
     {
         /// <summary>
-        /// Metodo de extensión encargado de validar un View Model
+        /// Validate the annotations in a class
         /// </summary>
-        /// <typeparam name="T">Tipo de objeto a validar</typeparam>
-        /// <param name="data">Objeto a Validar</param>
-        /// <returns>Returna una lista con los resultados de las validaciones</returns>
+        /// <typeparam name="T">Type object to validate</typeparam>
+        /// <param name="data">Object to validate</param>
+        /// <returns>Return a list with the result of the validations</returns>
         public static IList<ValidationResult> Validate<T>(this T data)
         {
             var results = new List<ValidationResult>();

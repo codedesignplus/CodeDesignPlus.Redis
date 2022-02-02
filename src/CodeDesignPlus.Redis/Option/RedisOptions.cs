@@ -8,7 +8,7 @@ namespace CodeDesignPlus.Redis.Option
     /// <summary>
     /// Configuration options for the Redis service 
     /// </summary>
-    public class RedisOptions
+    public class RedisOptions : IValidatableObject
     {
         /// <summary>
         /// Section Name
@@ -65,7 +65,7 @@ namespace CodeDesignPlus.Redis.Option
         /// </summary>
         public int AsyncTimeout { get; set; } = 5000;
         /// <summary>
-        /// Indicates whether admin operations should be allowed
+        /// Indicates whether administrator operations should be allowed
         /// </summary>
         public bool AllowAdmin { get; set; } = false;
         /// <summary>
@@ -93,7 +93,7 @@ namespace CodeDesignPlus.Redis.Option
         /// </summary>
         public string ServiceName { get; set; }
         /// <summary>
-        /// File Pfx
+        /// File PFX
         /// </summary>
         public string Certificate { get; set; }
         /// <summary>
@@ -132,6 +132,23 @@ namespace CodeDesignPlus.Redis.Option
             this.EndPoints.ForEach(x => configuration.EndPoints.Add(x));
 
             return configuration;
+        }
+
+        /// <summary>
+        /// Determines whether the specified object is valid.
+        /// </summary>
+        /// <param name="validationContext"> The validation context.</param>
+        /// <returns>A collection that holds failed-validation information.</returns>
+        public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+        {
+            var result = new List<ValidationResult>();
+
+            if (this.Ssl && string.IsNullOrEmpty(this.Certificate))
+            {
+                result.Add(new ValidationResult("The Certificate is required", new string[] { nameof(Certificate) }));
+            }
+
+            return result;
         }
     }
 }
