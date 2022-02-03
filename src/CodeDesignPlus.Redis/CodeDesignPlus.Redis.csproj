@@ -1,41 +1,46 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
-    <Authors>CodeDesignPlus</Authors>
-    <Description>Administra las configuraciones, eventos y conexión el cluster de Redis Cache para interactuar con datos en Memoria, Cache, y Eventos (Publish and Subscribe)</Description>
-    <PackageProjectUrl>https://github.com/codedesignplus/CodeDesignPlus.Redis</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/codedesignplus/CodeDesignPlus.Redis</RepositoryUrl>
-    <RepositoryType>Git</RepositoryType>
-    <PackageIcon>logo.png</PackageIcon>
-    <PackageTags>CodeDesignPlus SDK</PackageTags>
-    <Copyright>© CodeDesignPlus. All rights reserved.</Copyright>
-    <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
-    <CodeAnalysisRuleSet>..\..\.sonarlint\codedesignplus.redis.keycsharp.ruleset</CodeAnalysisRuleSet>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>net5.0</TargetFramework>
+		<Authors>CodeDesignPlus</Authors>
+		<Description>Administra las configuraciones, eventos y conexión el cluster de Redis Cache para interactuar con datos en Memoria, Cache, y Eventos (Publish and Subscribe)</Description>
+		<PackageProjectUrl>https://github.com/codedesignplus/CodeDesignPlus.Redis</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/codedesignplus/CodeDesignPlus.Redis</RepositoryUrl>
+		<RepositoryType>Git</RepositoryType>
+		<PackageIcon>logo.png</PackageIcon>
+		<PackageTags>CodeDesignPlus SDK</PackageTags>
+		<Copyright>© CodeDesignPlus. All rights reserved.</Copyright>
+		<PackageLicenseFile>LICENSE.md</PackageLicenseFile>
+		<CodeAnalysisRuleSet>..\..\.sonarlint\codedesignplus.redis.keycsharp.ruleset</CodeAnalysisRuleSet>
+		<GenerateDocumentationFile>False</GenerateDocumentationFile>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <AdditionalFiles Include="..\..\.sonarlint\codedesignplus.redis.key\CSharp\SonarLint.xml" Link="SonarLint.xml" />
-  </ItemGroup>
+	<ItemGroup>
+		<AdditionalFiles Include="..\..\.sonarlint\codedesignplus.redis.key\CSharp\SonarLint.xml" Link="SonarLint.xml" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="5.0.0" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="5.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="5.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="5.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Options.DataAnnotations" Version="5.0.0" />
-    <PackageReference Include="StackExchange.Redis" Version="2.2.4" />
-  </ItemGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+		<DocumentationFile>..\..\docs\CSharp Doc\CodeDesignPlus.Redis.xml</DocumentationFile>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <None Include="..\..\LICENSE.md">
-      <Pack>True</Pack>
-      <PackagePath></PackagePath>
-    </None>
-    <None Include="..\..\logo.png">
-      <Pack>True</Pack>
-      <PackagePath></PackagePath>
-    </None>
-  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="5.0.0" />
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="5.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="5.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="5.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Options.DataAnnotations" Version="5.0.0" />
+		<PackageReference Include="StackExchange.Redis" Version="2.2.4" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Include="..\..\LICENSE.md">
+			<Pack>True</Pack>
+			<PackagePath></PackagePath>
+		</None>
+		<None Include="..\..\logo.png">
+			<Pack>True</Pack>
+			<PackagePath></PackagePath>
+		</None>
+	</ItemGroup>
 
 </Project>
